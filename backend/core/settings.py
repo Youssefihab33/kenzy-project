@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-@$9jp_*7huf&!!j53i)+puihu=%#jnaht935=gpt@2-w__=%b=
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['192.168.1.100', '192.168.101', '127.1.0.0', 'kenzy-project.vercel.net']
+ALLOWED_HOSTS = ['192.168.1.100', '192.168.101', '127.0.0.1', 'kenzy-project.vercel.net']
 
 
 # Application definition
@@ -37,6 +37,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
+    'django_rest_passwordreset',
+    'knox',
+    'corsheaders',
     'phonenumber_field',
     'users',
 ]
@@ -86,6 +90,10 @@ DATABASES = {
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
 
 AUTH_USER_MODEL = 'users.CustomUser'
+AUTHENTICATION_BACKENDS = [
+    # 'django.contrib.auth.backends.ModelBackend', # Default authentication backend
+    'users.auth.Auth',  # Custom authentication backend
+]
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',

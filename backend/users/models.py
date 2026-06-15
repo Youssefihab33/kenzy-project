@@ -34,22 +34,22 @@ class CustomUser(AbstractUser):
     email = models.EmailField(unique=True)
     phone_number = PhoneNumberField(region="EG", db_index=True)
     profile_picture = models.ImageField(blank=True, null=True)
-    nationality = models.ForeignKey(
-        'shows.Country', on_delete=models.CASCADE, blank=True, null=True)
+    # nationality = models.ForeignKey(
+    #     'shows.Country', on_delete=models.CASCADE, blank=True, null=True)
 
     # Specify the required fields for user creation
-    REQUIRED_FIELDS = ['username', 'email', 'phone_number', 'password']
+    REQUIRED_FIELDS = ['email', 'phone_number']
     objects = CustomUserManager()
 
     def __str__(self):
         return self.username
 
 class Tutor(CustomUser):
-    about = models.models.TextField()
-    experience = models.models.TextField()
+    about = models.TextField()
+    experience = models.TextField()
     teaching_since = models.PositiveIntegerField(
         validators=[
-            MinValueValidator(1900),
+            MinValueValidator(1950),
             max_value_current_year
         ],
         help_text="Use a four-digit year (e.g., 2005)"
@@ -59,7 +59,7 @@ class Tutor(CustomUser):
         return 'Dr. ' + self.username
 
 class Student(CustomUser):
-    reached = models.models.JSONField()
+    reached = models.JSONField()
     # payments = models.ForeignKey()
     # subscriptions = models.ForeignKey()
     def __str__(self):
