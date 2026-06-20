@@ -19,11 +19,11 @@ from .serializers import LoginSerializer, RegisterSerializer, UserSerializer
 
 # def send_email(subject, template, user, btnLink=""):
 #     context = {
-#         'name': user.username,
+#         'name': user.email,
 #         'email': user.email,
 #         'year': datetime.now().year,
 #         'button_link': btnLink,
-#         'link_to_simsy': os.getenv('FRONTEND_DOMAIN'),
+#         'link_to_[APP_NAME]': os.getenv('FRONTEND_DOMAIN'),
 #         'admin_email': os.getenv('EMAIL_HOST'),
 #     }
 #     html_content = render_to_string(template, context)
@@ -41,13 +41,13 @@ from .serializers import LoginSerializer, RegisterSerializer, UserSerializer
 # @receiver(reset_password_token_created)
 # def password_reset_token_created(reset_password_token, *args, **kwargs):
 #     token_url = f'{os.getenv("FRONTEND_DOMAIN")}reset-password/{reset_password_token.key}'
-#     send_email("Forgot your Password? - SIMSY",
+#     send_email("Forgot your Password? - [APP_NAME]",
 #                'email/forgot_password.html', reset_password_token.user, token_url)
 
 
 # @receiver(post_password_reset)
 # def password_reset(sender, **kwargs):
-#     send_email("Password Changed Successfully - SIMSY",
+#     send_email("Password Changed Successfully - [APP_NAME]",
 #                # A DO LATER HERE
 #                'email/password_changed.html', kwargs['user'], 'DO LATER')
 
@@ -57,24 +57,15 @@ class LoginViewSet(ViewSet):
     serializer_class = LoginSerializer
 
     def create(self, request):
-        serializer = self.serializer_class(data=request.data)
+        serializer = self.serializer_class(data=request.data, context={'request': request})
         if serializer.is_valid():
-            username = serializer.validated_data['username']
-            password = serializer.validated_data['password']
-            user = authenticate(request, username=username, password=password)
-            if user:
-                # send_email('Login Notification - SIMSY',
-                #            'email/login.html', user, 'DO LATER')                # A DO LATER HERE
-                # Create token for the user
-                token = AuthToken.objects.create(user)[1]
-                return Response({'user': self.serializer_class(user).data, 'token': token})
-            else:
-                if not User.objects.filter(username=username).exists():
-                    return Response({'username': ['User with this username does not exist.']}, status=400)
-                else:
-                    return Response({'password': ['Incorrect password.']}, status=400)
-        else:
-            return Response(serializer.errors, status=400)
+            user = serializer.validated_data['user']
+            token = AuthToken.objects.create(user)[1]
+            return Response({
+                'user': UserSerializer(user).data, 
+                'token': token
+            }, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
 class RegisterViewSet(ViewSet):
     queryset = User.objects.all()
@@ -93,7 +84,7 @@ class RegisterViewSet(ViewSet):
 class UsersViewSet(ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny] # For testing purposes, change that in production [DO LATER]
 
     @action(detail=False, methods=['get', 'patch', 'put'])
     def current(self, request):
