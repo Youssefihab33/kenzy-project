@@ -23,6 +23,7 @@ class CustomUserManager(BaseUserManager):
         return user
 
     def create_superuser(self, email, password=None, **extra_fields):
+        extra_fields.setdefault('is_active', True)
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
         return self.create_user(email, password, **extra_fields)
@@ -31,7 +32,7 @@ class CustomUserManager(BaseUserManager):
 class CustomUser(AbstractUser):
     username = None
     email = models.EmailField(unique=True)
-    phone_number = PhoneNumberField(region="EG", db_index=True)
+    phone_number = PhoneNumberField(region='EG', db_index=True)
 
     is_tutor = models.BooleanField(default=False)
     is_student = models.BooleanField(default=False)
@@ -62,10 +63,12 @@ class TutorProfile(models.Model):
             MinValueValidator(1950),
             MaxValueValidator(datetime.date.today().year),
         ],
-        help_text="Use a valid year (e.g., 2005)"
+        help_text='Use a valid year (e.g., 2005)'
     )
-    # courses = models.ForeignKey()
 
+    def __str__(self):
+        name = f'{self.user.first_name} {self.user.last_name}'.strip()
+        return name if name else self.user.email
 
 class StudentProfile(models.Model):
     user = models.OneToOneField(
@@ -80,6 +83,9 @@ class StudentProfile(models.Model):
         blank=True, null=True
     )
 
+    def __str__(self):
+        name = f'{self.user.first_name} {self.user.last_name}'.strip()
+        return name if name else self.user.email
 
 @receiver(post_save, sender=CustomUser)
 def save_or_create_user_profile(sender, instance, created, **kwargs):
