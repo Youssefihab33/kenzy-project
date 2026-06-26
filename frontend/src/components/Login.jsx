@@ -15,7 +15,7 @@ import { useTitle } from 'react-use';
 
 const loginFormSchema = yup
 	.object({
-		username: yup.string().required('Username is required!').min(3, 'Minimum 3 characters'),
+		email: yup.string().required('Email is required!').email('Please enter a valid email address'),
 		password: yup.string().required('Password is required!').min(8, 'Minimum 8 characters'),
 	})
 	.required();
@@ -33,7 +33,7 @@ export default function Login() {
 
 	const { handleSubmit, control, setError, clearErrors } = useForm({
 		resolver: yupResolver(loginFormSchema),
-		defaultValues: { username: '', password: '' },
+		defaultValues: { email: '', password: '' },
 	});
 
 	if (user) return <AlreadyLoggedIn />;
@@ -44,26 +44,26 @@ export default function Login() {
 		setIsSubmitting(true);
 
 		try {
-			const response = await axiosInstance.post('/users/login/', data);
+			const response = await axiosInstance.post('/login/', data);
 			if (response.status === 200) {
+				// login() in Context handles token storage + navigation
 				login(response.data.token, from);
 			}
 		} catch (error) {
 			const errors = error.response?.data;
 			if (errors) {
-				// Handle Field-specific errors
-				if (errors.username) setError('username', { message: errors.username[0] });
+				// Handle field-specific errors from DRF
+				if (errors.email) setError('email', { message: errors.email[0] });
 				if (errors.password) setError('password', { message: errors.password[0] });
 
-				// Handle Generic errors
+				// Handle generic / non_field_errors
 				const generalMsg = errors.non_field_errors?.[0] || errors.detail || errors.error;
 				if (generalMsg) setAlert({ type: 'error', message: generalMsg });
 			} else {
-				setAlert({ type: 'error', message: 'Connection to server failed.' });
+				setAlert({ type: 'error', message: 'Connection to server failed. Please try again.' });
 			}
 		} finally {
 			setIsSubmitting(false);
-			navigate('/');
 		}
 	};
 
@@ -106,15 +106,17 @@ export default function Login() {
 				</Typography>
 				<form onSubmit={handleSubmit(onSubmit)}>
 					<Grid container spacing={3}>
-						{/* First Input Column */}
+						{/* Email Input */}
 						<Grid size={12}>
 							<Controller
-								name='username'
+								name='email'
 								control={control}
 								render={({ field, fieldState: { error } }) => (
 									<TextField
 										{...field}
-										label='Username'
+										label='Email'
+										type='email'
+										autoComplete='email'
 										fullWidth
 										error={!!error}
 										helperText={error?.message}

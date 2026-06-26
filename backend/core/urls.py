@@ -8,24 +8,29 @@ Function views
     1. Add an import:  from my_app import views
     2. Add a URL to urlpatterns:  path('', views.home, name='home')
 Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
+    1. Add an import:  from other_app import views as other_views
+    2. Add a URL to urlpatterns:  path('', other_views.Home.as_view(), name='home')
 Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from users.views import LoginViewSet, RegisterViewSet, UsersViewSet
 from rest_framework.routers import DefaultRouter
-router = DefaultRouter()
+from knox import views as knox_views
 
+router = DefaultRouter()
 router.register('login', LoginViewSet, basename='login')
 router.register('register', RegisterViewSet, basename='register')
 router.register('users', UsersViewSet, basename='users')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    # Knox auth endpoints
+    path('auth/logout/', knox_views.LogoutView.as_view(), name='knox_logout'),
+    path('auth/logoutall/', knox_views.LogoutAllView.as_view(), name='knox_logoutall'),
 ]
 
-urlpatterns += router.urls
+# Router URLs registered at root: /login/, /register/, /users/, /users/current/
+urlpatterns += router.urls
