@@ -1,12 +1,14 @@
 import { Routes, Route } from 'react-router-dom';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
-import { Fade, Box } from '@mui/material';
-import { lazy, Suspense } from 'react';
-import Theme1 from './themes/Theme1';
+import { Box } from '@mui/material';
+import { Suspense } from 'react';
+import { ThemeProvider } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
+import Theme1 from './components/themes/Theme1';
+
 import './app.css';
 
-// import { UserProvider } from './components/APIs/Context';
-// import ProtectedRoutes from './components/APIs/ProtectedRoutes';
+import { UserProvider } from './components/APIs/Context';
+import ProtectedRoutes from './components/APIs/ProtectedRoutes';
 
 // import Header from './components/snippets/Header';
 // import Footer from './components/snippets/Footer';
@@ -38,33 +40,34 @@ const PageLoader = () => (
 export default function App() {
 	return (
 		<ThemeProvider theme={Theme1}>
-			{/* <UserProvider> */}
-			{/* <Header /> */}
-			<Suspense fallback={<PageLoader />}>
-				<Routes>
-					{/* Public Routes */}
-					{/* <Route path='/register/' element={<Register />} /> */}
-					<Route path='/login/' element={<Login />} />
-					{/* <Route path='/logout/' element={<Logout />} /> */}
-					{/* <Route path='/forgot-password/' element={<ForgotPassword />} /> */}
-					{/* <Route path='/reset-password/:token' element={<ResetPassword />} /> */}
+			<CssBaseline />
+			<UserProvider>
+				{/* <Header /> */}
+				<Suspense fallback={<PageLoader />}>
+					<Routes>
+						{/* Public Routes */}
+						{/* <Route path='/register/' element={<Register />} /> */}
+						<Route path='/login/' element={<Login />} />
+						{/* <Route path='/logout/' element={<Logout />} /> */}
+						{/* <Route path='/forgot-password/' element={<ForgotPassword />} /> */}
+						{/* <Route path='/reset-password/:token' element={<ResetPassword />} /> */}
 
-					{/* Protected Routes */}
-					{/* <Route element={<ProtectedRoutes />}>
-							<Route path='/' element={<Homepage />} />
-							<Route path='/artist/:artist_id' element={<Artist />} />
+						{/* Protected Routes */}
+						<Route element={<ProtectedRoutes />}>
+							{/* <Route path='/' element={<Homepage />} /> */}
+							{/*	<Route path='/artist/:artist_id' element={<Artist />} />
 							<Route path='/country/:country_id' element={<Country />} />
 							<Route path='/language/:language_id' element={<Language />} />
 							<Route path='/genre/:genre_id' element={<Genre />} />
 							<Route path='/rating/:rating_id' element={<Rating />} />
 							<Route path='/label/:label_id' element={<Label />} />
 							<Route path='/show/:show_id' element={<Show />} />
-							<Route path='/profile' element={<Profile />} />
-						</Route> */}
-				</Routes>
-			</Suspense>
-			{/* <Footer /> */}
-			{/* </UserProvider> */}
+							<Route path='/profile' element={<Profile />} />*/}
+						</Route>
+					</Routes>
+				</Suspense>
+				{/* <Footer /> */}
+			</UserProvider>
 		</ThemeProvider>
 	);
 }

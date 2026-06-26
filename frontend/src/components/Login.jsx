@@ -1,5 +1,198 @@
-export default function Login(){
-    return(
-        <h1>LOGIN</h1>
-    )
+import { useNavigate, useLocation, Link as RouterLink } from 'react-router-dom';
+import { Controller, useForm } from 'react-hook-form';
+import { useState, useContext } from 'react';
+import * as yup from 'yup';
+import { yupResolver } from '@hookform/resolvers/yup';
+
+import { Container, Grow, TextField, Button, Link, Alert, Box, Paper, Grid, InputAdornment, IconButton, Typography } from '@mui/material';
+import { Visibility, VisibilityOff, Login as LoginIcon } from '@mui/icons-material';
+
+import axiosInstance from './APIs/Axios.jsx';
+import { UserContext } from './APIs/Context.jsx';
+import AlreadyLoggedIn from './snippets/AlreadyLoggedIn.jsx';
+import AnimatedFace from './snippets/AnimatedFace.jsx';
+import { useTitle } from 'react-use';
+
+const loginFormSchema = yup
+	.object({
+		username: yup.string().required('Username is required!').min(3, 'Minimum 3 characters'),
+		password: yup.string().required('Password is required!').min(8, 'Minimum 8 characters'),
+	})
+	.required();
+
+export default function Login() {
+	const { user, login } = useContext(UserContext);
+	const [alert, setAlert] = useState(null);
+	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [faceState, setFaceState] = useState('default');
+	const [showPassword, setShowPassword] = useState(false);
+	const navigate = useNavigate();
+	const location = useLocation();
+	const from = location.state?.from?.pathname || '/';
+	useTitle('Login - SIMSY');
+
+	const { handleSubmit, control, setError, clearErrors } = useForm({
+		resolver: yupResolver(loginFormSchema),
+		defaultValues: { username: '', password: '' },
+	});
+
+	if (user) return <AlreadyLoggedIn />;
+
+	const onSubmit = async (data) => {
+		setAlert(null);
+		clearErrors();
+		setIsSubmitting(true);
+
+		try {
+			const response = await axiosInstance.post('/users/login/', data);
+			if (response.status === 200) {
+				login(response.data.token, from);
+			}
+		} catch (error) {
+			const errors = error.response?.data;
+			if (errors) {
+				// Handle Field-specific errors
+				if (errors.username) setError('username', { message: errors.username[0] });
+				if (errors.password) setError('password', { message: errors.password[0] });
+
+				// Handle Generic errors
+				const generalMsg = errors.non_field_errors?.[0] || errors.detail || errors.error;
+				if (generalMsg) setAlert({ type: 'error', message: generalMsg });
+			} else {
+				setAlert({ type: 'error', message: 'Connection to server failed.' });
+			}
+		} finally {
+			setIsSubmitting(false);
+			navigate('/');
+		}
+	};
+
+	return (
+		<Container sx={{ my: 5 }} maxWidth='sm'>
+			{alert && (
+				<Grow in={!!alert}>
+					<Alert severity={alert.type} sx={{ mb: 2, borderRadius: '12px' }} onClose={() => setAlert(null)}>
+						{alert.message}
+					</Alert>
+				</Grow>
+			)}
+
+			<Paper
+				elevation={0}
+				sx={{
+					p: { xs: 4, sm: 5 },
+					textAlign: 'center',
+					background: 'rgba(21, 24, 33, 0.45)',
+					backdropFilter: 'blur(20px)',
+					WebkitBackdropFilter: 'blur(20px)',
+					border: '1px solid rgba(255, 255, 255, 0.08)',
+					borderRadius: 4,
+					boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.3)',
+				}}
+			>
+				<AnimatedFace state={faceState} />
+				<Typography
+					variant='h4'
+					component='h1'
+					sx={{
+						fontWeight: '800',
+						mb: 4,
+						color: 'text.primary',
+						letterSpacing: '1px',
+						fontFamily: 'Outfit, sans-serif',
+					}}
+				>
+					Welcome Back
+				</Typography>
+				<form onSubmit={handleSubmit(onSubmit)}>
+					<Grid container spacing={3}>
+						{/* First Input Column */}
+						<Grid size={12}>
+							<Controller
+								name='username'
+								control={control}
+								render={({ field, fieldState: { error } }) => (
+									<TextField
+										{...field}
+										label='Username'
+										fullWidth
+										error={!!error}
+										helperText={error?.message}
+										disabled={isSubmitting}
+										onFocus={() => setFaceState('typing')}
+										onBlur={() => setFaceState('default')}
+									/>
+								)}
+							/>
+						</Grid>
+
+						{/* Second Input Column */}
+						<Grid size={12}>
+							<Controller
+								name='password'
+								control={control}
+								render={({ field, fieldState: { error } }) => (
+									<TextField
+										{...field}
+										type={showPassword ? 'text' : 'password'}
+										label='Password'
+										fullWidth
+										error={!!error}
+										helperText={error?.message}
+										disabled={isSubmitting}
+										onFocus={() => setFaceState(showPassword ? 'typing' : 'hiding')}
+										onBlur={() => setFaceState('default')}
+										slotProps={{
+											input: {
+												endAdornment: (
+													<InputAdornment position='end'>
+														<IconButton
+															aria-label='toggle password visibility'
+															onClick={() => {
+																const nextShow = !showPassword;
+																setShowPassword(nextShow);
+																setFaceState(nextShow ? 'typing' : 'hiding');
+															}}
+															edge='end'
+															sx={{ color: 'text.secondary' }}
+														>
+															{showPassword ? <VisibilityOff /> : <Visibility />}
+														</IconButton>
+													</InputAdornment>
+												),
+											},
+										}}
+									/>
+								)}
+							/>
+						</Grid>
+
+						{/* Submit Button */}
+						<Grid size={12}>
+							<Button
+								type='submit'
+								variant='contained'
+								color='primary'
+								fullWidth
+								size='large'
+								disabled={isSubmitting}
+								startIcon={<LoginIcon />}
+								sx={{
+									py: 1.5,
+									fontWeight: '700',
+									fontSize: '1rem',
+									boxShadow: '0 4px 14px 0 rgba(175, 145, 59, 0.3)',
+									'&:hover': {
+										boxShadow: '0 6px 20px 0 rgba(175, 145, 59, 0.5)',
+									},
+								}}
+							>
+								{isSubmitting ? 'Signing In...' : 'Sign In'}
+							</Button>
+						</Grid>
+					</Grid>
+				</form>
+			</Paper>
+		</Container>
+	);
 }

@@ -2,7 +2,7 @@ import { Box, CircularProgress } from '@mui/material';
 
 export default function LoadingSpinner({ small = false }) {
 	if (small) {
-		return <CircularProgress size={20} sx={{ color: primary }} />;
+		return <CircularProgress size={20} sx={{ color: 'primary.main' }} />;
 	}
 
 	return (
@@ -15,9 +15,9 @@ export default function LoadingSpinner({ small = false }) {
 			}}
 		>
 			<Box sx={{ display: 'flex', gap: 2 }}>
-				<CircularProgress sx={{ color: primary }} size={40} />
-				<CircularProgress sx={{ color: 'secondary' }} size={40} />
-				<CircularProgress sx={{ color: 'tertiary' }} size={40} />
+				<CircularProgress sx={{ color: 'primary.main' }} size={40} />
+				<CircularProgress sx={{ color: 'secondary.main' }} size={40} />
+				<CircularProgress sx={{ color: 'primary.light' }} size={40} />
 			</Box>
 		</Box>
 	);
