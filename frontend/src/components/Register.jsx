@@ -1,39 +1,37 @@
-import { useNavigate, useLocation, Link as RouterLink } from 'react-router-dom';
+import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import { Controller, useForm } from 'react-hook-form';
 import { useState, useContext } from 'react';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 
-import { Container, Grow, TextField, Button, Link, Alert, Box, Paper, Grid, InputAdornment, IconButton, Typography } from '@mui/material';
-import { Visibility, VisibilityOff, Login as LoginIcon } from '@mui/icons-material';
+import { Container, Grow, TextField, Button, Link, Alert, Box, Paper, Grid, Typography } from '@mui/material';
+import { PersonAdd as PersonAddIcon } from '@mui/icons-material';
 
 import axiosInstance from './APIs/Axios.jsx';
 import { UserContext } from './APIs/Context.jsx';
 import AlreadyLoggedIn from './snippets/AlreadyLoggedIn.jsx';
-import AnimatedFace from './snippets/AnimatedFace.jsx';
 import { useTitle } from 'react-use';
 
-const loginFormSchema = yup
+const registerFormSchema = yup
 	.object({
+		first_name: yup.string().required('First name is required!'),
+		last_name: yup.string().required('Last name is required!'),
 		email: yup.string().required('Email is required!').email('Please enter a valid email address'),
+		phone_number: yup.string().required('Phone number is required!'),
 		password: yup.string().required('Password is required!').min(8, 'Minimum 8 characters'),
 	})
 	.required();
 
-export default function Login() {
-	const { user, login } = useContext(UserContext);
+export default function Register() {
+	const { user } = useContext(UserContext);
 	const [alert, setAlert] = useState(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
-	const [faceState, setFaceState] = useState('default');
-	const [showPassword, setShowPassword] = useState(false);
 	const navigate = useNavigate();
-	const location = useLocation();
-	const from = location.state?.from?.pathname || '/';
-	useTitle('Login - Kenzy Project');
+	useTitle('Register - Kenzy Project');
 
 	const { handleSubmit, control, setError, clearErrors } = useForm({
-		resolver: yupResolver(loginFormSchema),
-		defaultValues: { email: '', password: '' },
+		resolver: yupResolver(registerFormSchema),
+		defaultValues: { first_name: '', last_name: '', email: '', phone_number: '', password: '' },
 	});
 
 	if (user) return <AlreadyLoggedIn />;
@@ -44,19 +42,20 @@ export default function Login() {
 		setIsSubmitting(true);
 
 		try {
-			const response = await axiosInstance.post('/login/', data);
-			if (response.status === 200) {
-				// login() in Context handles token storage + navigation
-				login(response.data.token, from);
+			const response = await axiosInstance.post('/register/', data);
+			if (response.status === 201) {
+				setAlert({ type: 'success', message: 'Registration successful! Please wait for admin approval before logging in.' });
+                // We don't redirect immediately to let them read the message
 			}
 		} catch (error) {
 			const errors = error.response?.data;
 			if (errors) {
-				// Handle field-specific errors from DRF
 				if (errors.email) setError('email', { message: errors.email[0] });
+				if (errors.phone_number) setError('phone_number', { message: errors.phone_number[0] });
+				if (errors.first_name) setError('first_name', { message: errors.first_name[0] });
+				if (errors.last_name) setError('last_name', { message: errors.last_name[0] });
 				if (errors.password) setError('password', { message: errors.password[0] });
 
-				// Handle generic / non_field_errors
 				const generalMsg = errors.non_field_errors?.[0] || errors.detail || errors.error;
 				if (generalMsg) setAlert({ type: 'error', message: generalMsg });
 			} else {
@@ -90,7 +89,6 @@ export default function Login() {
 					boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.3)',
 				}}
 			>
-				<AnimatedFace state={faceState} />
 				<Typography
 					variant='h4'
 					component='h1'
@@ -102,12 +100,43 @@ export default function Login() {
 						fontFamily: 'Outfit, sans-serif',
 					}}
 				>
-					Welcome Back
+					Create Account
 				</Typography>
 				<form onSubmit={handleSubmit(onSubmit)}>
 					<Grid container spacing={3}>
-						{/* Email Input */}
-						<Grid size={12}>
+						<Grid item xs={12} sm={6}>
+							<Controller
+								name='first_name'
+								control={control}
+								render={({ field, fieldState: { error } }) => (
+									<TextField
+										{...field}
+										label='First Name'
+										fullWidth
+										error={!!error}
+										helperText={error?.message}
+										disabled={isSubmitting}
+									/>
+								)}
+							/>
+						</Grid>
+						<Grid item xs={12} sm={6}>
+							<Controller
+								name='last_name'
+								control={control}
+								render={({ field, fieldState: { error } }) => (
+									<TextField
+										{...field}
+										label='Last Name'
+										fullWidth
+										error={!!error}
+										helperText={error?.message}
+										disabled={isSubmitting}
+									/>
+								)}
+							/>
+						</Grid>
+						<Grid item xs={12}>
 							<Controller
 								name='email'
 								control={control}
@@ -116,61 +145,49 @@ export default function Login() {
 										{...field}
 										label='Email'
 										type='email'
-										autoComplete='email'
 										fullWidth
 										error={!!error}
 										helperText={error?.message}
 										disabled={isSubmitting}
-										onFocus={() => setFaceState('typing')}
-										onBlur={() => setFaceState('default')}
 									/>
 								)}
 							/>
 						</Grid>
-
-						{/* Second Input Column */}
-						<Grid size={12}>
+						<Grid item xs={12}>
+							<Controller
+								name='phone_number'
+								control={control}
+								render={({ field, fieldState: { error } }) => (
+									<TextField
+										{...field}
+										label='Phone Number'
+										fullWidth
+										error={!!error}
+										helperText={error?.message}
+										disabled={isSubmitting}
+									/>
+								)}
+							/>
+						</Grid>
+						<Grid item xs={12}>
 							<Controller
 								name='password'
 								control={control}
 								render={({ field, fieldState: { error } }) => (
 									<TextField
 										{...field}
-										type={showPassword ? 'text' : 'password'}
+										type='password'
 										label='Password'
 										fullWidth
 										error={!!error}
 										helperText={error?.message}
 										disabled={isSubmitting}
-										onFocus={() => setFaceState(showPassword ? 'typing' : 'hiding')}
-										onBlur={() => setFaceState('default')}
-										slotProps={{
-											input: {
-												endAdornment: (
-													<InputAdornment position='end'>
-														<IconButton
-															aria-label='toggle password visibility'
-															onClick={() => {
-																const nextShow = !showPassword;
-																setShowPassword(nextShow);
-																setFaceState(nextShow ? 'typing' : 'hiding');
-															}}
-															edge='end'
-															sx={{ color: 'text.secondary' }}
-														>
-															{showPassword ? <VisibilityOff /> : <Visibility />}
-														</IconButton>
-													</InputAdornment>
-												),
-											},
-										}}
 									/>
 								)}
 							/>
 						</Grid>
 
-						{/* Submit Button */}
-						<Grid size={12}>
+						<Grid item xs={12}>
 							<Button
 								type='submit'
 								variant='contained'
@@ -178,20 +195,21 @@ export default function Login() {
 								fullWidth
 								size='large'
 								disabled={isSubmitting}
-								startIcon={<LoginIcon />}
+								startIcon={<PersonAddIcon />}
 								sx={{
 									py: 1.5,
 									fontWeight: '700',
 									fontSize: '1rem',
-									boxShadow: '0 4px 14px 0 rgba(175, 145, 59, 0.3)',
-									'&:hover': {
-										boxShadow: '0 6px 20px 0 rgba(175, 145, 59, 0.5)',
-									},
 								}}
 							>
-								{isSubmitting ? 'Signing In...' : 'Sign In'}
+								{isSubmitting ? 'Registering...' : 'Register'}
 							</Button>
 						</Grid>
+                        <Grid item xs={12}>
+                            <Typography variant="body2">
+                                Already have an account? <Link component={RouterLink} to="/login">Sign In</Link>
+                            </Typography>
+                        </Grid>
 					</Grid>
 				</form>
 			</Paper>
