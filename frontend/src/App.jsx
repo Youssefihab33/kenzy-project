@@ -5,7 +5,7 @@ import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import Theme1 from './components/themes/Theme1';
 
-import './app.css';
+import './App.css';
 
 import { UserProvider } from './components/APIs/Context';
 import ProtectedRoutes from './components/APIs/ProtectedRoutes';
@@ -16,6 +16,7 @@ import LoadingSpinner from './components/snippets/LoadingSpinner';
 
 // import Homepage from './components/Homepage';
 import Login from './components/Login';
+import CourseDetails from './components/CourseDetails';
 // import Show from './components/Show';
 
 // Lazy load route components for better initial load performance
@@ -54,6 +55,7 @@ export default function App() {
 
 						{/* Protected Routes */}
 						<Route element={<ProtectedRoutes />}>
+							<Route path='/course/:courseId' element={<CourseDetails />} />
 							{/* <Route path='/' element={<Homepage />} /> */}
 							{/*	<Route path='/artist/:artist_id' element={<Artist />} />
 							<Route path='/country/:country_id' element={<Country />} />
