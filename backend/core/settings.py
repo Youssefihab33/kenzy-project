@@ -142,3 +142,12 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
     ],
 }
+
+# Moodle Integration
+import os
+from dotenv import load_dotenv
+load_dotenv(BASE_DIR / ".env")
+
+MOODLE_URL = os.getenv('MOODLE_URL', 'http://localhost:8080')
+MOODLE_TOKEN = os.getenv('MOODLE_TOKEN', '')
+MOODLE_WEBSERVICE_REST_PATH = '/webservice/rest/server.php'

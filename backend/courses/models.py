@@ -4,6 +4,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 
 # Create your models here.
 class Course(models.Model):
+    moodle_course_id = models.IntegerField(null=True, blank=True, unique=True)
     name = models.CharField(max_length=250)
     year = models.PositiveIntegerField(
         validators=[
@@ -23,25 +24,3 @@ class Course(models.Model):
 
     def __str__(self):
         return f'Dr.{self.tutor} - {self.name}'
-    
-class Chapter(models.Model):
-    course = models.ForeignKey('courses.Course', on_delete=models.CASCADE)
-    number = models.FloatField()
-    name = models.CharField(max_length=250)
-
-    class Meta:
-        ordering = ['course', 'number']
-
-    def __str__(self):
-        return f'{self.course} - {self.number}.{self.name}'
-
-class Session(models.Model):
-    chapter = models.ForeignKey('courses.Chapter', on_delete=models.CASCADE)
-    number = models.FloatField()
-    name = models.CharField(max_length=250)
-
-    class Meta:
-        ordering = ['chapter', 'number']
-
-    def __str__(self):
-        return f'{self.chapter} - {self.number}.{self.name}'

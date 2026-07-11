@@ -4,8 +4,9 @@ from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.base_user import BaseUserManager
 from phonenumber_field.modelfields import PhoneNumberField
 from django.core.validators import MaxValueValidator, MinValueValidator
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, m2m_changed
 from django.dispatch import receiver
+from core.moodle_api import create_moodle_user, enrol_user_in_course
 # from .storage import OverwriteStorage, File_Rename
 
 # Create your models here.
@@ -33,6 +34,8 @@ class CustomUser(AbstractUser):
     username = None
     email = models.EmailField(unique=True)
     phone_number = PhoneNumberField(region='EG', db_index=True)
+
+    moodle_user_id = models.IntegerField(null=True, blank=True)
 
     is_tutor = models.BooleanField(default=False)
     is_student = models.BooleanField(default=False)
@@ -89,6 +92,13 @@ class StudentProfile(models.Model):
 
 @receiver(post_save, sender=CustomUser)
 def save_or_create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        # Create user in Moodle
+        moodle_id = create_moodle_user(instance)
+        if moodle_id:
+            instance.moodle_user_id = moodle_id
+            instance.save(update_fields=['moodle_user_id'])
+
     if instance.is_tutor:
         TutorProfile.objects.get_or_create(
             user=instance, 
@@ -99,3 +109,20 @@ def save_or_create_user_profile(sender, instance, created, **kwargs):
             user=instance, 
             defaults={'reached': {}}
         )
+
+@receiver(m2m_changed, sender='courses.Course_students')
+def sync_enrollment_to_moodle(sender, instance, action, pk_set, **kwargs):
+    """
+    When a student is added to a Course in Django, enrol them in Moodle.
+    """
+    if action == "post_add":
+        from courses.models import Course
+        if isinstance(instance, Course) and instance.moodle_course_id:
+            for student_id in pk_set:
+                try:
+                    student_profile = StudentProfile.objects.get(pk=student_id)
+                    user = student_profile.user
+                    if user.moodle_user_id:
+                        enrol_user_in_course(user.moodle_user_id, instance.moodle_course_id)
+                except StudentProfile.DoesNotExist:
+                    continue
