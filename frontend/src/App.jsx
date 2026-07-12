@@ -18,6 +18,8 @@ import Login from './components/Login';
 import Register from './components/Register';
 import Dashboard from './components/Dashboard';
 import Profile from './components/Profile';
+import CourseDetails from './components/CourseDetails';
+import LessonView from './components/LessonView';
 
 const PageLoader = () => (
 	<Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
@@ -39,6 +41,8 @@ function AppRoutes() {
                 <Route element={<ProtectedRoutes />}>
                     <Route path='/' element={user ? <Dashboard /> : <Homepage />} />
                     <Route path='/profile' element={<Profile />} />
+                    <Route path='/courses/:courseId' element={<CourseDetails />} />
+                    <Route path='/courses/:courseId/lessons/:lessonId' element={<LessonView />} />
                 </Route>
                 
                 {/* Fallback */}
