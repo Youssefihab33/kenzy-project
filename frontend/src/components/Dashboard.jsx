@@ -1,5 +1,6 @@
 import { useState, useEffect, useContext } from 'react';
 import { Container, Typography, Grid, Card, CardContent, Button, Box, Alert, Tabs, Tab, Paper, Stack } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 import axiosInstance from './APIs/Axios.jsx';
 import { UserContext } from './APIs/Context.jsx';
 import LoadingSpinner from './snippets/LoadingSpinner.jsx';
@@ -8,6 +9,7 @@ import { Book, People, AssignmentTurnedIn } from '@mui/icons-material';
 
 export default function Dashboard() {
     const { user } = useContext(UserContext);
+    const navigate = useNavigate();
     const [courses, setCourses] = useState([]);
     const [enrollments, setEnrollments] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -122,6 +124,17 @@ export default function Dashboard() {
                                     <Typography variant="h6">{course.name}</Typography>
                                     <Typography color="text.secondary">{course.tutor_name}</Typography>
                                     <Typography variant="body2" sx={{ mt: 1 }}>{course.description}</Typography>
+                                    {user.is_tutor && (
+                                        <Button
+                                            variant="contained"
+                                            color="primary"
+                                            sx={{ mt: 2 }}
+                                            fullWidth
+                                            onClick={() => navigate(`/courses/${course.id}`)}
+                                        >
+                                            View Course
+                                        </Button>
+                                    )}
                                     {!user.is_tutor && !course.is_enrolled && (
                                         <Button 
                                             variant="contained" 
@@ -133,9 +146,15 @@ export default function Dashboard() {
                                             {course.enrollment_status === 'pending' ? 'Pending Approval' : 'Enroll Now'}
                                         </Button>
                                     )}
-                                    {course.is_enrolled && (
-                                        <Button variant="outlined" color="success" sx={{ mt: 2 }} fullWidth disabled>
-                                            Enrolled
+                                    {!user.is_tutor && course.is_enrolled && (
+                                        <Button
+                                            variant="contained"
+                                            color="success"
+                                            sx={{ mt: 2 }}
+                                            fullWidth
+                                            onClick={() => navigate(`/courses/${course.id}`)}
+                                        >
+                                            View Course
                                         </Button>
                                     )}
                                 </CardContent>

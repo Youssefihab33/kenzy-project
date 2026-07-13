@@ -131,6 +131,7 @@ STATIC_URL = 'static/'
 STATIC_PATH = BASE_DIR / 'media'
 MEDIA_URL = 'media/'
 MEDIA_PATH = BASE_DIR.parent / 'data' / 'media'
+MEDIA_ROOT = MEDIA_PATH
 
 # CORS Configuration
 CORS_ALLOW_ALL_ORIGINS = True

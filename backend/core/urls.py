@@ -17,6 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from users.views import LoginViewSet, RegisterViewSet, UsersViewSet
+from courses.views import EnrollmentRequestViewSet, LessonViewSet
 from rest_framework.routers import DefaultRouter
 from knox import views as knox_views
 
@@ -24,6 +25,8 @@ router = DefaultRouter()
 router.register('login', LoginViewSet, basename='login')
 router.register('register', RegisterViewSet, basename='register')
 router.register('users', UsersViewSet, basename='users')
+router.register('enrollments', EnrollmentRequestViewSet, basename='enrollments')
+router.register('lessons', LessonViewSet, basename='lessons')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -33,5 +36,11 @@ urlpatterns = [
     path('auth/logoutall/', knox_views.LogoutAllView.as_view(), name='knox_logoutall'),
 ]
 
-# Router URLs registered at root: /login/, /register/, /users/, /users/current/
-urlpatterns += router.urls
+from django.conf import settings
+from django.conf.urls.static import static
+
+# Router URLs registered at root: /login/, /register/, /users/, /users/current/, /enrollments/
+urlpatterns += router.urls
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
